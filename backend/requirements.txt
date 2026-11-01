@@ -1,0 +1,10 @@
+
+fastapi
+uvicorn[standard]
+mcp>=2,<3
+httpx2
+python-dotenv
+openai
+langgraph
+pydantic
+sqlalchemy

@@ -1,0 +1,157 @@
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #e9eef7;
+  background: #0b1020;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+.dashboard {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 48px 20px;
+}
+
+.eyebrow {
+  color: #7aa7ff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+h1 { font-size: 42px; margin: 12px 0 6px; }
+h2 { margin-top: 0; }
+
+header p, .meta { color: #9caac2; }
+
+.panel {
+  margin-top: 30px;
+  padding: 28px;
+  border: 1px solid #293450;
+  border-radius: 16px;
+  background: #151d30;
+}
+
+.tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+
+button {
+  cursor: pointer;
+  border: 1px solid #354360;
+  border-radius: 9px;
+  background: #222e48;
+  color: white;
+  padding: 12px 18px;
+}
+
+button.active { background: #325de5; }
+
+form { display: grid; gap: 17px; }
+
+label { display: grid; gap: 8px; font-weight: 600; }
+
+input {
+  width: 100%;
+  padding: 13px;
+  background: #0d1527;
+  color: white;
+  border: 1px solid #394765;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.submit {
+  background: #426bfa;
+  border: none;
+  font-weight: 700;
+}
+
+.submit:disabled { opacity: .6; cursor: wait; }
+
+.result { line-height: 1.6; }
+.risk { color: #a8c0ff; font-weight: 700; }
+.finding { border-top: 1px solid #354360; padding-top: 18px; }
+.error { margin-top: 20px; color: #ff9b9b; }
+
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #0b1324;
+  padding: 18px;
+  border-radius: 9px;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 34px; }
+  .tabs { flex-direction: column; }
+}
+
+/* Analysis history */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.history {
+  margin-top: 28px;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.history-header h2 {
+  margin: 0;
+}
+
+.history-item {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #354360;
+  border-radius: 12px;
+  background: #10182b;
+}
+
+.history-item h3 {
+  margin-top: 0;
+}
+
+.history-item button {
+  margin-top: 12px;
+}
+
+.saved-label {
+  display: inline-block;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.app-footer {
+  text-align: center;
+  color: #7d8ca7;
+  font-size: 13px;
+  margin-top: 36px;
+  padding-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tabs button {
+    flex: 1 1 100%;
+  }
+}
