@@ -8,3 +8,5 @@ openai
 langgraph
 pydantic
 sqlalchemy
+langchain
+langchain-openai

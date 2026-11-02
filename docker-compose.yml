@@ -11,8 +11,12 @@ services:
       - .env
     volumes:
       - ./data:/app/data
+      - ./evaluations:/app/evaluations:ro
     environment:
-      - DATABASE_URL=sqlite:////app/data/devpilot.db
+      DATABASE_URL: sqlite:////app/data/devpilot.db
+      EVALUATION_REPORT_PATH: /app/evaluations/live_evaluation_report.json
+
+      
     restart: unless-stopped
 
   frontend:

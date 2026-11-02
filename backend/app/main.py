@@ -1,12 +1,15 @@
-
 import json
-import logging
 import os
+from pathlib import Path
+import logging
+from fastapi import HTTPException
+from fastapi import Depends
+from app.security import require_api_key
 
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-
+from app.observability import ObservabilityMiddleware
 from app.database import (
     Base,
     engine,
@@ -16,6 +19,7 @@ from app.database import (
 from app.services.repository_context import (
     collect_repository_context,
 )
+from app.agents.multi_tool_agent import build_multi_tool_agent
 from app.agents.review_agent import review_graph
 from app.agents.ci_agent import ci_graph
 from app.services.github_service import (
@@ -52,7 +56,7 @@ app = FastAPI(
     version="0.3.0",
 )
 
-
+app.add_middleware(ObservabilityMiddleware)
 # --------------------------------------------------
 # Request Models
 # --------------------------------------------------
@@ -83,6 +87,15 @@ class CIAnalysisRequest(BaseModel):
         pattern=r"^[A-Za-z0-9_.-]+$",
     )
     run_id: int = Field(gt=0)
+
+class InvestigationRequest(BaseModel):
+    owner: str = Field(pattern=r"^[A-Za-z0-9-]+$")
+    repo: str = Field(pattern=r"^[A-Za-z0-9_.-]+$")
+    question: str = Field(
+        min_length=10,
+        max_length=1000
+    )
+
 
 
 # --------------------------------------------------
@@ -491,3 +504,172 @@ async def get_report_by_id(report_id: int):
             status_code=500,
             detail="Unable to retrieve report.",
         )
+
+@app.post(
+    "/api/investigate",
+    dependencies=[Depends(require_api_key)],
+)
+async def investigate(request: InvestigationRequest):
+    validate_repository(request.owner, request.repo)
+
+    repository = f"{request.owner}/{request.repo}"
+
+    try:
+        async with github_mcp() as client:
+            agent, audit = build_multi_tool_agent(
+                client,
+                request.owner,
+                request.repo,
+            )
+
+            result = await agent.ainvoke(
+                {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": request.question,
+                        }
+                    ]
+                },
+                config={"recursion_limit": 16},
+            )
+
+        final_message = result["messages"][-1]
+        answer = final_message.content
+
+        if not isinstance(answer, str):
+            answer = json.dumps(answer, default=str)
+
+        report_data = {
+            "question": request.question,
+            "answer": answer,
+            "tool_calls": audit,
+        }
+
+        report_id = save_report(
+            report_type="multi_tool",
+            repository=repository,
+            reference_id=0,
+            result=report_data,
+        )
+
+        return {
+            "status": "success",
+            "report_id": report_id,
+            "repository": repository,
+            "answer": answer,
+            "tool_calls": audit,
+            "tool_call_count": len(audit),
+        }
+
+    except Exception:
+        logger.exception("Multi-tool investigation failed")
+        raise HTTPException(
+            status_code=502,
+            detail="Multi-tool investigation failed. Check server logs.",
+        )
+    
+@app.get("/api/evaluations/latest")
+async def get_latest_evaluation():
+    report_path = Path(
+        os.getenv(
+            "EVALUATION_REPORT_PATH",
+            "evaluations/live_evaluation_report.json",
+        )
+    )
+
+    if not report_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="No evaluation report found. Run the benchmark first.",
+        )
+
+    try:
+        with report_path.open(encoding="utf-8") as file:
+            report = json.load(file)
+    except (OSError, ValueError):
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to load the evaluation report.",
+        )
+
+    if not isinstance(report, dict):
+        raise HTTPException(
+            status_code=500,
+            detail="Invalid evaluation report format.",
+        )
+
+    # Only expose aggregate metrics to the dashboard.
+    # Full traces can contain repository data or logs.
+    allowed_fields = (
+        "timestamp",
+        "total",
+        "successful",
+        "success_rate",
+        "average_latency_seconds",
+        "average_mcp_calls",
+        "within_tool_budget",
+        "diagnostic_accuracy",
+    )
+
+    return {
+        field: report.get(field)
+        for field in allowed_fields
+    }
+
+# -------------------------------------------------------
+# Feature 5: Agent Evaluation Dashboard
+# -------------------------------------------------------
+
+@app.get("/api/evaluations/latest")
+async def get_latest_evaluation():
+    report_path = Path(
+        os.getenv(
+            "EVALUATION_REPORT_PATH",
+            "/app/evaluations/live_evaluation_report.json",
+        )
+    )
+
+    if not report_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Evaluation report not found. "
+                "Check the Docker volume and report path."
+            ),
+        )
+
+    try:
+        with report_path.open(
+            "r", encoding="utf-8"
+        ) as file:
+            report = json.load(file)
+
+    except (OSError, ValueError):
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to read evaluation report.",
+        )
+
+    if not isinstance(report, dict):
+        raise HTTPException(
+            status_code=500,
+            detail="Invalid evaluation report format.",
+        )
+
+    allowed_fields = [
+        "timestamp",
+        "total",
+        "successful",
+        "success_rate",
+        "average_latency_seconds",
+        "average_mcp_calls",
+        "within_tool_budget",
+        "diagnostic_accuracy",
+    ]
+
+    return {
+        key: report.get(key)
+        for key in allowed_fields
+    }
+

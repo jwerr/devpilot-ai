@@ -1,0 +1,25 @@
+
+[
+    {
+      "id": "LIVE-PR-001",
+      "category": "pull_request",
+      "owner": "jwerr",
+      "repo": "MCP_Server",
+      "question": "Investigate pull request #1. Review its changed files and identify any confirmed code defects."
+    },
+    {
+      "id": "LIVE-CI-001",
+      "category": "ci_failure",
+      "owner": "jwerr",
+      "repo": "MCP_Server",
+      "question": "Investigate historical failed GitHub Actions run 41312676761. Inspect failure logs and repository configuration, identify the most likely root cause, and cite evidence."
+    },
+    {
+      "id": "LIVE-CI-002",
+      "category": "ci_failure",
+      "owner": "jwerr",
+      "repo": "MCP_Server",
+      "question": "Review recent GitHub Actions workflow runs. Determine whether any failures are visible and explain what can be confirmed from the available evidence."
+    }
+  ]
+  
