@@ -244,7 +244,7 @@ def build_multi_tool_agent(mcp_client, owner, repo):
     agent = create_agent(
         model=model,
         tools=tools,
-        ystem_prompt=SYSTEM_PROMPT,
+        system_prompt=SYSTEM_PROMPT,
         middleware=[
             ToolCallLimitMiddleware(
                 run_limit=8,
