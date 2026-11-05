@@ -1,12 +1,18 @@
+
 {
-  "rewrites": [
-    {
-      "source": "/health",
-      "destination": "https://devpilot-backend-bts2.onrender.com/health"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+    "rewrites": [
+      {
+        "source": "/api/:path*",
+        "destination": "https://devpilot-backend-bts2.onrender.com/api/:path*"
+      },
+      {
+        "source": "/health",
+        "destination": "https://devpilot-backend-bts2.onrender.com/health"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
+    ]
+  }
+  
