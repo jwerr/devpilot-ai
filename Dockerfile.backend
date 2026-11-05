@@ -13,4 +13,6 @@ ENV PYTHONPATH=/app/backend
 
 EXPOSE 8000
 
+COPY evaluations/public_evaluation_summary.json /app/evaluations/live_evaluation_report.json
+
 CMD ["sh", "-c", "exec uvicorn app.main:app --app-dir /app/backend --host 0.0.0.0 --port ${PORT:-8000}"]
