@@ -15,8 +15,9 @@ export default async function handler(req, res) {
     }
   
     try {
-      const response = await fetch(
-        "https://devpilot-backend-bts2.onrender.com/api/benchmarks/latest",
+    
+        const response = await fetch(
+            "https://devpilot-backend-bts2.onrender.com/api/evaluations/latest",
         {
           headers: {
             "X-API-Key": apiKey,
