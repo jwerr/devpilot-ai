@@ -1,11 +1,15 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://devpilot-backend-bts2.onrender.com/api/:path*"
+    },
+    {
       "source": "/health",
       "destination": "https://devpilot-backend-bts2.onrender.com/health"
     },
     {
-      "source": "/((?!api(?:/|$)).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
