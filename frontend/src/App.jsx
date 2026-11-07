@@ -35,6 +35,20 @@ const ICON_PATHS = {
   shield: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "m9 12 2 2 4-4"],
 };
 
+
+function PageHeader({ eyebrow, title, description, action }) {
+  return (
+    <header className="page-heading page-header">
+      <div className="page-heading-copy">
+        {eyebrow && <div className="eyebrow page-eyebrow">{eyebrow}</div>}
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+      </div>
+      {action && <div className="page-header-action">{action}</div>}
+    </header>
+  );
+}
+
 function Icon({ name, size = 18, className = "" }) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24"
@@ -232,6 +246,30 @@ export default function App() {
     } catch { setError("Clipboard access was denied by your browser."); }
   }
 
+  const pageTitles = {
+    overview: "Developer command center",
+    pr: "Pull Request Review",
+    ci: "CI Failure Analysis",
+    agent: "Unified Investigation",
+    history: "Analysis History",
+    evaluation: "Agent Evaluation",
+  };
+  const pageDescriptions = {
+    overview: "Investigate, understand, and resolve engineering issues with AI-powered tools.",
+    pr: "Review pull request changes and surface actionable code findings.",
+    ci: "Trace failing GitHub Actions runs to their likely root causes.",
+    agent: "Ask one question. Let the agent choose the right GitHub tools.",
+    history: "Revisit previous analyses without generating new AI responses.",
+    evaluation: "Measure real-world agent performance from saved benchmarks.",
+  };
+  const pageEyebrows = {
+    overview: "OVERVIEW",
+    pr: "CODE REVIEW",
+    ci: "CI ANALYSIS",
+    agent: "AGENT",
+    history: "HISTORY",
+    evaluation: "EVALUATION",
+  };
   const page = NAV.find((item) => item.id === mode) || NAV[0];
   const report = mode === "pr" ? result?.review : mode === "ci" ? result?.analysis : null;
   const toolCalls = Array.isArray(result?.tool_calls) ? result.tool_calls : [];
@@ -275,29 +313,26 @@ export default function App() {
             <span className="breadcrumb">Workspace</span><Icon name="chevron" size={14} /><strong>{page.label}</strong>
           </div>
           <div className="topbar-actions">
-            <span className="environment"><span className="status-dot status-dot--online" /> LOCAL ENVIRONMENT</span>
+            <span className="environment"><span className="status-dot status-dot--online" /> {import.meta.env.PROD ? "PRODUCTION" : "LOCAL ENVIRONMENT"}</span>
             <a className="topbar-repo" href={repoUrl} target="_blank" rel="noreferrer"><Icon name="git" size={15} /> {owner}/{repo} <Icon name="external" size={13} /></a>
           </div>
         </div>
 
         <main className="content">
-          <div className="page-heading">
-            <div><div className="eyebrow">DEV PILOT / {mode.toUpperCase()}</div>
-              <h1>{mode === "overview" ? "Developer command center" : page.label}</h1>
-              <p>{({ overview: "Investigate, understand, and resolve engineering issues with AI-powered tools.",
-                pr: "Review pull request changes and surface actionable code findings.",
-                ci: "Trace failing GitHub Actions runs to their likely root causes.",
-                agent: "Ask one question. Let the agent choose the right GitHub tools.",
-                history: "Revisit previous analyses without generating new AI responses.",
-                evaluation: "Measure real-world agent performance from saved benchmarks." })[mode]}</p>
-            </div>
-            {(mode === "history" || mode === "evaluation") && (
-              <button className="button button--secondary" onClick={mode === "history" ? loadHistory : loadEvaluation}
-                disabled={mode === "history" ? historyLoading : evaluationLoading}>
+          <PageHeader
+            eyebrow={`DEV PILOT / ${pageEyebrows[mode]}`}
+            title={pageTitles[mode]}
+            description={pageDescriptions[mode]}
+            action={(mode === "history" || mode === "evaluation") ? (
+              <button
+                className="button button--secondary"
+                onClick={mode === "history" ? loadHistory : loadEvaluation}
+                disabled={mode === "history" ? historyLoading : evaluationLoading}
+              >
                 <Icon name="refresh" size={16} /> Refresh
               </button>
-            )}
-          </div>
+            ) : null}
+          />
 
           {mode === "overview" && (
             <>
@@ -409,7 +444,7 @@ export default function App() {
                 <article className="history-row" key={item.id}>
                   <div className="history-row-icon"><Icon name={item.type === "ci_analysis" ? "activity" : item.type === "multi_tool" ? "spark" : "git"} /></div>
                   <div className="history-row-info"><h3>{reportTitle(item.type)}</h3><p>{item.repository} · {item.type === "pr_review" ? `PR #${item.reference_id}` : item.type === "ci_analysis" ? `Run ${item.reference_id}` : item.result?.question || "Agent investigation"}</p><small>{formatDate(item.created_at)}</small></div>
-                  <button className="button button--secondary button--compact" onClick={() => openSaved(item)}>View report <Icon name="arrow" size={15} /></button>
+                  <button className="button button--secondary button--compact history-row-action" onClick={() => openSaved(item)}>View report <Icon name="arrow" size={15} /></button>
                 </article>
               ))}</div>}
             </section>
