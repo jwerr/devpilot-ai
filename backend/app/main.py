@@ -531,7 +531,7 @@ async def investigate(request: InvestigationRequest):
                         }
                     ]
                 },
-                config={"recursion_limit": 16},
+                config={"recursion_limit": 30},
             )
 
         final_message = result["messages"][-1]
